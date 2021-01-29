@@ -5,7 +5,7 @@ presented at the 2021 ACM Conference on Intelligent User Interfaces (IUI 2021).
 
 ## Instructors
 
-* Patricio Cerda, MSc, PUC Chile
+* Patricio Cerda, MSc, PUC Chile & MindsDB
 * Felipe del Río, PhD Student, PUC Chile
 * Manuel Cartagena, MSc Student, PUC Chile
 * Denis Parra, Associate Professor, PUC Chile
