@@ -1,5 +1,8 @@
 ### Custom
 
+# Ignore checkpoints folder contents
+checkpoints/*
+
 # Ignore changes in datasets data folder...
 data/*
 # ... except its README...
