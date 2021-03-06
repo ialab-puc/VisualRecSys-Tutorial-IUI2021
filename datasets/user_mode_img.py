@@ -8,11 +8,11 @@ import errno
 import os
 
 import pandas as pd
-from PIL import Image
+from skimage import io, transform
 from torch.utils.data import Dataset
 
 
-class UserModeDataset(Dataset):
+class UserModeImgDataset(Dataset):
     """Represents the Dataset as a PyTorch Dataset that yields tuples
     of 4 items: (ui, pi, ni, ii). This mode, represents users as an id.
 
@@ -21,14 +21,16 @@ class UserModeDataset(Dataset):
         transform: Transforms for each sample.
     """
 
-    def __init__(self, csv_file, img_path, transform=None, id2index=None):
-        """Inits a UGallery Dataset.
+    def __init__(self, csv_file, img_path, id2index, index2fn, transform=None):
+        """Inits a Dataset.
 
         Args:
             csv_file: Path (string) to the triplets file.
             img_path: Path (string) to the images
+            id2index: Dict. Keys are img name, values are indexes
+            index2fn: Dict. Keys are indexes, values are file names
             transform: Optional. Torchvision like transforms.
-            id2index: Optional. Transformation to apply on items.
+            
         """
         # Data sources
         if not os.path.isfile(csv_file):
@@ -42,19 +44,23 @@ class UserModeDataset(Dataset):
 
         self.__source_file = csv_file
         self.__images_path = img_path
+        self.id2index = id2index
+        self.index2fn = index2fn
         
         # Load triples from dataframe
         triples = pd.read_csv(self.__source_file)
-        
+
+        # TODO: this crashes, why?
         # Process profile elements
-        if id2index:
-            # Note: Assumes id is str and index is int
-            def map_id2index(element):
-                if type(element) is list:
-                    return [id2index[e] for e in element]
-                else:
-                    return id2index[str(element)]
-            triples[["pi", "ni"]] = triples[["pi", "ni"]].applymap(map_id2index)
+        # if id2index:
+        #     # Note: Assumes id is str and index is int
+        #     def map_id2index(element):
+        #         if type(element) is list:
+        #             return [id2index[e] for e in element]
+        #         else:
+        #             return id2index[str(element)]
+        #     triples[["pi", "ni"]] = triples[["pi", "ni"]].applymap(map_id2index)
+        
         # Keep important attributes
         self.ui = triples["ui"].to_numpy(copy=True)
         self.pi = triples["pi"].to_numpy(copy=True)
@@ -66,9 +72,8 @@ class UserModeDataset(Dataset):
         return len(self.ui)
 
     def __getitem__(self, idx):
-        path = self.__images_path # TODO id_img how?
-        with open(path, 'rb') as f:
-            img = Image.open(path)
+        path = os.path.join(self.__images_path, self.index2fn[idx])
+        img = io.imread(path)
         return (
             self.ui[idx],
             self.pi[idx],
