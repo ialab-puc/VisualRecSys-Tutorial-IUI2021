@@ -4,7 +4,7 @@ import time
 
 import torch
 from torch.utils.data import DataLoader
-from tqdm.auto import tqdm
+from tqdm import tqdm
 
 from models.utils import get_cpu_copy, save_checkpoint
 
