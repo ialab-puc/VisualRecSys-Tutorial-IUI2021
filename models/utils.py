@@ -11,9 +11,19 @@ def get_cpu_copy(model):
     })
 
 
-def get_model_by_name(model_name, pretrained=True):
+def get_model_by_name(model_name, pretrained=True, output_layer=None):
     model = models.__dict__[model_name](pretrained=pretrained)
-    model = torch.nn.Sequential(*list(model.children()))[:-1]
+
+    if output_layer:
+        children_list = []
+        for n, c in model.named_children():
+            children_list.append(c)
+            if n == output_layer:
+                break
+        model = nn.Sequential(*self.children_list)
+    else:
+        # output_layer = last layer
+        model = torch.nn.Sequential(*list(model.children()))[:-1]
     for param in model.parameters():
         model.requires_grad = False
     return model
