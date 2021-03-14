@@ -121,18 +121,16 @@ class ImgTrainer:
                 for _ in range(loop_times):
                     for i_batch, data in enumerate(dataloaders[phase]):
                         profile = data[0].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
-                        pi = data[1].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
-                        ni = data[2].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
-                        pimg = data[3].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
-                        nimg = data[4].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
-                        target = torch.ones(pi.size(0), 1, 1, device=self.device)
+                        pimg = data[1].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
+                        nimg = data[2].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
+                        target = torch.ones(pimg.size(0), 1, 1, device=self.device)
 
                         # Restart params gradients
                         self.optimizer.zero_grad()
 
                         # Forward pass
                         with torch.set_grad_enabled(phase == "train"):
-                            output = self.model(profile, pi, ni, pimg, nimg)
+                            output = self.model(profile, pimg, nimg)
                             loss = self.criterion(output, target)
                             # Backward pass
                             if phase == "train":

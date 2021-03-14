@@ -71,14 +71,14 @@ class CNN(nn.Module):
 
 
 class DVBPR(nn.Module):
-    def __init__(self, n_users, n_items, dim_theta, K=2048):
+    def __init__(self, n_users, K=2048):
         super().__init__()
 
         # CNN for learned image features
         self.cnn = CNN(hidden_dim=K) 
 
         # Visual latent preference (theta)
-        self.theta_users = nn.Embedding(n_users, dim_theta)
+        self.theta_users = nn.Embedding(n_users, K)
 
         # User bias
         self.beta_users = nn.Embedding(n_users, 1)        
@@ -86,7 +86,7 @@ class DVBPR(nn.Module):
         # Random weight initialization
         self.reset_parameters()
 
-    def forward(self, ui, pi, ni, pimg, nimg):
+    def forward(self, ui, pimg, nimg):
         """Forward pass of the model.
 
         Feed forward a given input (batch). Each object is expected

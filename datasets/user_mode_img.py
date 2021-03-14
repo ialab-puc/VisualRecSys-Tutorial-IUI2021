@@ -84,14 +84,7 @@ class UserModeImgDataset(Dataset):
         nimgpath = os.path.join(self.__images_path, self.index2fn[self.ni[idx]])
         nimg = io.imread(nimgpath)
         
-        tuple = self.transform(
-            self.ui[idx],
-            self.pi[idx],
-            self.ni[idx],
-            pimg,
-            nimg
-        )
-
+        tuple = self.transform(self.ui[idx], pimg, nimg)
         return tuple
 
 
@@ -101,10 +94,10 @@ class TransformTuple(object):
         self.rescaler = Rescale(img_size)
         self.to_tensor = ToTensor()
     
-    def __call__(self, ui, pi, ni, pimg, nimg):
+    def __call__(self, ui, pimg, nimg):
         pimg = self.to_tensor(self.rescaler(pimg))
         nimg = self.to_tensor(self.rescaler(nimg))
-        return (ui, pi, ni, pimg, nimg)
+        return (ui, pimg, nimg)
 
 
 
