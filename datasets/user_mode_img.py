@@ -4,9 +4,11 @@ This module contains Dataset object with the triples information
 represented as (ui, pi, ni), where each is an identifier.
 To this triplet, we append the item image: (ui, pi, ni, ii)
 """
+import torch
 import errno
 import os
 
+import numpy as np
 import pandas as pd
 from skimage import io, transform
 from torch.utils.data import Dataset
@@ -14,14 +16,15 @@ from torch.utils.data import Dataset
 
 class UserModeImgDataset(Dataset):
     """Represents the Dataset as a PyTorch Dataset that yields tuples
-    of 4 items: (ui, pi, ni, ii). This mode, represents users as an id.
+    of 5 items: (ui, pi, ni, pimg, nimg).
+    This mode represents users as an id.
 
     Attributes:
-        ui, pi, ni, ii: Dataset tuples (in different arrays).
+        ui, pi, ni, pimg, nimg: Dataset tuples (in different arrays).
         transform: Transforms for each sample.
     """
 
-    def __init__(self, csv_file, img_path, id2index, index2fn, transform=None):
+    def __init__(self, csv_file, img_path, id2index, index2fn, transform=None, img_size=224):
         """Inits a Dataset.
 
         Args:
@@ -66,17 +69,74 @@ class UserModeImgDataset(Dataset):
         self.pi = triples["pi"].to_numpy(copy=True)
         self.ni = triples["ni"].to_numpy(copy=True)
         # Common setup
-        self.transform = transform
+        if transform is None:
+            self.transform = TransformTuple(img_size)
+        else:
+            self.transform = transform
 
     def __len__(self):
         return len(self.ui)
 
     def __getitem__(self, idx):
-        path = os.path.join(self.__images_path, self.index2fn[idx])
-        img = io.imread(path)
-        return (
+        pimgpath = os.path.join(self.__images_path, self.index2fn[self.ni[idx]])
+        pimg = io.imread(pimgpath)
+
+        nimgpath = os.path.join(self.__images_path, self.index2fn[self.ni[idx]])
+        nimg = io.imread(nimgpath)
+        
+        tuple = self.transform(
             self.ui[idx],
             self.pi[idx],
             self.ni[idx],
-            img
+            pimg,
+            nimg
         )
+
+        return tuple
+
+
+class TransformTuple(object):
+    def __init__(self, img_size):
+        assert isinstance(img_size, (int, tuple))
+        self.rescaler = Rescale(img_size)
+        self.to_tensor = ToTensor()
+    
+    def __call__(self, ui, pi, ni, pimg, nimg):
+        pimg = self.to_tensor(self.rescaler(pimg))
+        nimg = self.to_tensor(self.rescaler(nimg))
+        return (ui, pi, ni, pimg, nimg)
+
+
+
+class Rescale(object):
+    """Rescale the image in a sample to a given size.
+    output_size (tuple or int): Desired output size. If tuple, output is
+        matched to output_size. If int, smaller of image edges is matched
+        to output_size keeping aspect ratio the same.
+    """
+    def __init__(self, output_size):
+        self.output_size = output_size
+
+    def __call__(self, image):
+        h, w = image.shape[:2]
+        if isinstance(self.output_size, int):
+            if h > w:
+                new_h, new_w = self.output_size * h / w, self.output_size
+            else:
+                new_h, new_w = self.output_size, self.output_size * w / h
+        else:
+            new_h, new_w = self.output_size
+
+        new_h, new_w = int(new_h), int(new_w)
+        img = transform.resize(image, (new_h, new_w))
+        return img
+
+
+class ToTensor(object):
+    """Convert ndarrays in sample to Tensors."""
+    def __call__(self, image):
+        # swap color axis because
+        # numpy image: H x W x C
+        # torch image: C X H X W
+        image = image.transpose((2, 0, 1)).astype(np.float32)
+        return torch.from_numpy(image)

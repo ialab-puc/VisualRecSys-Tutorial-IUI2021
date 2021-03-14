@@ -17,8 +17,6 @@ class CNN(nn.Module):
         super(CNN, self).__init__()
         self.hidden_dim = hidden_dim
 
-        # TODO: assert imgs are [3, 224, 224]-shaped
-
         if weights is None:
             # set default network dimensions
             weights = {
@@ -56,7 +54,7 @@ class CNN(nn.Module):
             x = self.maxpool2d(x) if apply_maxpool else x
 
         # reshape between conv and linear
-        x = torch.reshape(x, shape=[-1,self.layer_params['fc'][0][0]])
+        x = torch.reshape(x, shape=[-1, self.layer_params['fc'][0][0]])
 
         # fully connected layers
         for fc_layer in self.fcs:
@@ -88,7 +86,7 @@ class DVBPR(nn.Module):
         # Random weight initialization
         self.reset_parameters()
 
-    def forward(self, ui, pi, ni):
+    def forward(self, ui, pi, ni, pimg, nimg):
         """Forward pass of the model.
 
         Feed forward a given input (batch). Each object is expected
@@ -107,14 +105,14 @@ class DVBPR(nn.Module):
         ui_visual_factors = self.theta_users(ui)  # Visual factors of user u
         ui_bias = self.beta_users(ui)
         # Items
-        pi_features = self.cnn(pi)  # Pos. item visual features
-        ni_features = self.cnn(ni)  # Neg. item visual features
+        pi_features = self.cnn(pimg)  # Pos. item visual features
+        ni_features = self.cnn(nimg)  # Neg. item visual features
 
         # Precompute differences
         diff_features = pi_features - ni_features
 
         # x_uij
-        x_uij = ui_bias + (ui_visual_factors * diff_features.unsqueeze(-1))
+        x_uij = ui_bias + (ui_visual_factors * diff_features).sum(1).unsqueeze(-1)
 
         return x_uij.unsqueeze(-1)
 
