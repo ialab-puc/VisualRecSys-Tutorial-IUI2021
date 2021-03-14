@@ -20,7 +20,7 @@ def get_model_by_name(model_name, pretrained=True, output_layer=None):
             children_list.append(c)
             if n == output_layer:
                 break
-        model = torch.nn.Sequential(*self.children_list)
+        model = torch.nn.Sequential(*children_list)
     else:
         # output_layer = last layer
         model = torch.nn.Sequential(*list(model.children()))[:-1]
