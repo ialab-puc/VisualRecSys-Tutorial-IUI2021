@@ -91,12 +91,12 @@ class UserModeImgDataset(Dataset):
 class TransformTuple(object):
     def __init__(self, img_size):
         assert isinstance(img_size, (int, tuple))
-        self.rescaler = Rescale(img_size)
+        # self.rescaler = Rescale(img_size)
         self.to_tensor = ToTensor()
     
     def __call__(self, ui, pimg, nimg):
-        pimg = self.to_tensor(self.rescaler(pimg))
-        nimg = self.to_tensor(self.rescaler(nimg))
+        pimg = self.to_tensor(pimg)  # )self.rescaler(
+        nimg = self.to_tensor(nimg)  # )self.rescaler(
         return (ui, pimg, nimg)
 
 
