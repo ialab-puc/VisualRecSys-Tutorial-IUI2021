@@ -78,7 +78,7 @@ class UserModeImgDataset(Dataset):
         return len(self.ui)
 
     def __getitem__(self, idx):
-        pimgpath = os.path.join(self.__images_path, self.index2fn[self.ni[idx]])
+        pimgpath = os.path.join(self.__images_path, self.index2fn[self.pi[idx]])
         pimg = io.imread(pimgpath)
 
         nimgpath = os.path.join(self.__images_path, self.index2fn[self.ni[idx]])
