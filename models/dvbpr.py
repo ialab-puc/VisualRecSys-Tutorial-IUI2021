@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from tqdm.auto import tqdm
 
 """
 DVBPR -- PyTorch port
@@ -137,9 +138,10 @@ class DVBPR(nn.Module):
         nn.init.xavier_uniform_(self.beta_users.weight)  # Biases (beta)
         self.cnn.reset_parameters() # CNN
 
-    def generate_cache(self, img_list, grad_enabled=False):
+    def generate_cache(self, img_list, grad_enabled=False, device='cpu'):
         cache = []
         with torch.set_grad_enabled(grad_enabled):
-            for img in img_list:
+            for img in tqdm(img_list):
+                img = img.to(device)
                 cache.append(self.cnn(img))
             return torch.stack(cache)
