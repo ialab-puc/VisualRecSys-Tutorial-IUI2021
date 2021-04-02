@@ -109,13 +109,10 @@ class DVBPR(nn.Module):
         pi_features = self.cnn(pimg)  # Pos. item visual features
         ni_features = self.cnn(nimg)  # Neg. item visual features
 
-        # Precompute differences
-        diff_features = pi_features - ni_features
+        x_ui = ui_bias.squeeze() + (ui_visual_factors * pi_features).sum(1)
+        x_uj = ui_bias.squeeze() + (ui_visual_factors * ni_features).sum(1)
 
-        # x_uij
-        x_uij = ui_bias + (ui_visual_factors * diff_features).sum(1).unsqueeze(-1)
-
-        return x_uij.unsqueeze(-1)
+        return x_ui, x_uj
 
     def recommend_all(self, user, img_list, cache=None, grad_enabled=False):
         with torch.set_grad_enabled(grad_enabled):
