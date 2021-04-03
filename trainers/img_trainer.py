@@ -121,7 +121,7 @@ class ImgTrainer:
                 for _ in range(loop_times):
                     for i_batch, data in enumerate(dataloaders[phase]):
                         profile = data[0].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
-                        pimg = data[1].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
+                        pimg = data[1].to(self.device, non_blocking=non_blocking).squeeze(dim=0)  # transforms.ToPILImage()(pimg[0]).show()
                         nimg = data[2].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
                         target = torch.ones(pimg.size(0), device=self.device)
 
@@ -145,8 +145,10 @@ class ImgTrainer:
                         # Update progress bar
                         if phase == "train":
                             pbar_train.update()
+                            pbar_train.set_postfix(last_lostt=loss.item())
                         else:
                             pbar_valid.update()
+                            pbar_valid.set_postfix(last_lostt=loss.item())
 
                         # Synchronize GPU (debugging)
                         # torch.cuda.synchronize()
