@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from tqdm.auto import tqdm
+import torchvision.models as models
 
 """
 DVBPR -- PyTorch port
@@ -72,11 +73,15 @@ class CNN(nn.Module):
 
 
 class DVBPR(nn.Module):
-    def __init__(self, n_users, K=2048):
+    def __init__(self, n_users, features, K=2048):
         super().__init__()
 
         # CNN for learned image features
-        self.cnn = CNN(hidden_dim=K) 
+        # self.cnn = CNN(hidden_dim=K)
+        # alexnet = models.alexnet(pretrained=True)
+        # alexnet.classifier = torch.nn.Sequential(*(list(alexnet.classifier.children())[:-1] + [nn.Linear(4096, K)]))
+        # self.cnn = alexnet
+        self.cnn = nn.Embedding.from_pretrained(torch.Tensor(features), freeze=True)
 
         # Visual latent preference (theta)
         self.theta_users = nn.Embedding(n_users, K)
@@ -133,7 +138,7 @@ class DVBPR(nn.Module):
         """ Restart network weights using a Xavier uniform distribution. """
         nn.init.xavier_uniform_(self.theta_users.weight)  # Visual factors (theta)
         nn.init.xavier_uniform_(self.beta_users.weight)  # Biases (beta)
-        self.cnn.reset_parameters() # CNN
+        # self.cnn.reset_parameters() # CNN
 
     def generate_cache(self, img_list, grad_enabled=False, device='cpu'):
         cache = []
