@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     # Parameters (training)
     SETTINGS = {
-        "dataloader:batch_size": 24, # 32, # 128,  # , 42_000,
+        "dataloader:batch_size": 42_000,  # 24, # 32, # 128,  # ,
         "dataloader:num_workers": 1, #os.cpu_count(),
         "model:dim_visual": 2048, # 50,
         "optimizer:lr": 0.001,
@@ -122,7 +122,7 @@ if __name__ == '__main__':
         lr=SETTINGS["optimizer:lr"],
         weight_decay=SETTINGS["optimizer:weight_decay"],
     )
-    criterion = bpr_loss  # nn.MarginRankingLoss(reduction="mean") #   nn.BCEWithLogitsLoss(reduction="sum")  # #   #
+    criterion = nn.BCEWithLogitsLoss(reduction="sum")  # bpr_loss  # nn.MarginRankingLoss(reduction="mean")
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="max", factor=SETTINGS["scheduler:factor"],
         patience=SETTINGS["scheduler:patience"], verbose=True,

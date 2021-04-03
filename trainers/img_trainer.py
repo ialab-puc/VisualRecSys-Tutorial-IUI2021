@@ -131,8 +131,8 @@ class ImgTrainer:
                         # Forward pass
                         with torch.set_grad_enabled(phase == "train"):
                             pos, neg = self.model(profile, pimg, nimg)
-                            loss = self.criterion(pos, neg, target)
                             output = pos-neg
+                            loss = self.criterion(output, target)
                             # Backward pass
                             if phase == "train":
                                 loss.backward()
