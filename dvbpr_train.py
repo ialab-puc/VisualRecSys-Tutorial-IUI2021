@@ -9,7 +9,7 @@ import torch.multiprocessing
 from torch.utils.data import DataLoader, Subset
 from torch.utils.data.sampler import RandomSampler, SequentialSampler
 
-from datasets import UserModeImgDataset, UserModeDataset
+from datasets import UserModeImgDataset, UserModeDataset, UserModeFeatDataset
 from models import DVBPR
 from trainers import ImgTrainer
 from trainers.losses import bpr_loss
@@ -28,14 +28,14 @@ if __name__ == '__main__':
 
     # Parameters (training)
     SETTINGS = {
-        "dataloader:batch_size": 42_000,  # 24, # 32, # 128,  # ,
-        "dataloader:num_workers": 1, #os.cpu_count(),
-        "model:dim_visual": 2048, # 50,
+        "dataloader:batch_size":  64,  # 64,  # 24,  # 256,  # 42_000,128,  # x
+        "dataloader:num_workers": os.cpu_count(),  # 1,  #
+        "model:dim_visual": 50,  # 2048,  #
         "optimizer:lr": 0.001,
-        "optimizer:weight_decay": 1, #0.0001,
+        "optimizer:weight_decay": 0.1,  # 0.0001,
         "scheduler:factor": 0.6,
         "scheduler:patience": 2,
-        "train:max_epochs": 5,  # 1, # 5,  # 150,
+        "train:max_epochs": 1,  # 1, # 5,  # 150,
         "train:max_lrs": 5,
         "train:non_blocking": True,
         "train:train_per_valid_times": 1,
@@ -62,11 +62,11 @@ if __name__ == '__main__':
     # DataLoaders initialization
     print("\nInitialize DataLoaders")
     # Training DataLoader
-    train_dataset = UserModeDataset(  # UserModeImgDataset(
+    train_dataset = UserModeImgDataset( # UserModeDataset(  #
         csv_file=TRAINING_PATH,
-        # img_path=IMAGES_PATH,
-        # id2index=id2index,
-        # index2fn=index2fn
+        img_path=IMAGES_PATH,
+        id2index=id2index,
+        index2fn=index2fn
     )
     print(f">> Training dataset: {len(train_dataset)}")
     train_sampler = RandomSampler(train_dataset)
@@ -80,11 +80,11 @@ if __name__ == '__main__':
     )
     print(f">> Training dataloader: {len(train_dataloader)}")
     # Validation DataLoader
-    valid_dataset = UserModeDataset(  # UserModeImgDataset(
+    valid_dataset = UserModeImgDataset( # UserModeDataset(  #
         csv_file=VALIDATION_PATH,
-        #img_path=IMAGES_PATH,
-        # id2index=id2index,
-        #index2fn=index2fn
+        img_path=IMAGES_PATH,
+        id2index=id2index,
+        index2fn=index2fn
     )
     print(f">> Validation dataset: {len(valid_dataset)}")
     valid_sampler = SequentialSampler(valid_dataset)
@@ -114,6 +114,8 @@ if __name__ == '__main__':
         embedding,  # experiments for debugging
         SETTINGS["model:dim_visual"],  # Size of visual spaces
     ).to(device)
+
+    print(model)
 
     # Training setup
     print("\nSetting up training")

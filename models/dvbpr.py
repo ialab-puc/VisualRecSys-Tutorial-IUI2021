@@ -15,7 +15,7 @@ Note that we do not consider the GAN element of the paper in this work.
 
 
 class CNN(nn.Module):
-    def __init__(self, hidden_dim=2048, weights=None, dropout=0.5):
+    def __init__(self, hidden_dim=2048, fc_dim=256, weights=None, dropout=0.5):
         super(CNN, self).__init__()
         self.hidden_dim = hidden_dim
 
@@ -30,9 +30,9 @@ class CNN(nn.Module):
                         ([256, 256, 3], None)],
                     
                 # fc layers: n_in, n_out
-                'fc': [[256*22*2, 4096],  # original: 256*7*7 -> 4096
-                    [4096, 4096],
-                    [4096, self.hidden_dim]]
+                'fc': [[256*22*2, fc_dim],  # original: 256*7*7 -> 4096
+                    [fc_dim, fc_dim],
+                    [fc_dim, self.hidden_dim]]
             }
 
         self.convs = nn.ModuleList([nn.Conv2d(*params, padding_mode='replicate', stride=stride if stride else 1)
@@ -75,13 +75,14 @@ class CNN(nn.Module):
 class DVBPR(nn.Module):
     def __init__(self, n_users, features, K=2048):
         super().__init__()
+        self.cache = None
 
         # CNN for learned image features
-        # self.cnn = CNN(hidden_dim=K)
+        self.cnn = CNN(hidden_dim=K)
         # alexnet = models.alexnet(pretrained=True)
         # alexnet.classifier = torch.nn.Sequential(*(list(alexnet.classifier.children())[:-1] + [nn.Linear(4096, K)]))
         # self.cnn = alexnet
-        self.cnn = nn.Embedding.from_pretrained(torch.Tensor(features), freeze=True)
+        # self.cnn = nn.Embedding.from_pretrained(torch.Tensor(features), freeze=True)
 
         # Visual latent preference (theta)
         self.theta_users = nn.Embedding(n_users, K)
@@ -110,12 +111,21 @@ class DVBPR(nn.Module):
         # User
         ui_visual_factors = self.theta_users(ui)  # Visual factors of user u
         ui_bias = self.beta_users(ui)
+
+        #print('bias', ui_bias.squeeze().shape)
+        #print('factors', ui_visual_factors.shape)
         # Items
         pi_features = self.cnn(pimg)  # Pos. item visual features
         ni_features = self.cnn(nimg)  # Neg. item visual features
+        #print('pimgfeat', pi_features.shape)
+        #print('nimgfeat', ni_features.shape)
+
+        #print('mmul', (ui_visual_factors * pi_features).shape)
 
         x_ui = ui_bias.squeeze() + (ui_visual_factors * pi_features).sum(1)
         x_uj = ui_bias.squeeze() + (ui_visual_factors * ni_features).sum(1)
+        #print('x_ui', x_ui.shape)
+        #print('x_uj', x_uj.shape)
 
         return x_ui, x_uj
 
@@ -127,6 +137,8 @@ class DVBPR(nn.Module):
             # Items
             if cache is not None:
                 visual_rating_space = cache
+            elif self.cache is not None:
+                visual_rating_space = self.cache
             else:
                 visual_rating_space = self.generate_cache(img_list)
 
@@ -138,12 +150,13 @@ class DVBPR(nn.Module):
         """ Restart network weights using a Xavier uniform distribution. """
         nn.init.xavier_uniform_(self.theta_users.weight)  # Visual factors (theta)
         nn.init.xavier_uniform_(self.beta_users.weight)  # Biases (beta)
-        # self.cnn.reset_parameters() # CNN
+        self.cnn.reset_parameters() # CNN
 
     def generate_cache(self, img_list, grad_enabled=False, device='cpu'):
         cache = []
         with torch.set_grad_enabled(grad_enabled):
             for img in tqdm(img_list):
-                img = img.to(device)
+                img = img.to(device).unsqueeze(0)
                 cache.append(self.cnn(img))
-            return torch.stack(cache)
+            self.cache = torch.stack(cache)
+            return cache
