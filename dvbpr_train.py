@@ -28,14 +28,15 @@ if __name__ == '__main__':
 
     # Parameters (training)
     SETTINGS = {
-        "dataloader:batch_size":  64,  # 64,  # 24,  # 256,  # 42_000,128,  # x
-        "dataloader:num_workers": os.cpu_count(),  # 1,  #
+        "dataloader:batch_size": 128, # 256,  #  512, # 64,  # 64,  # 24,  # 42_000,128,  # x
+        "dataloader:num_workers": 4, # os.cpu_count(),  # 1,  #
+        "prev_checkpoint": 'DVBPR_wikimediaAlexNet5epochs',
         "model:dim_visual": 50,  # 2048,  #
         "optimizer:lr": 0.001,
-        "optimizer:weight_decay": 0.1,  # 0.0001,
+        "optimizer:weight_decay": 0.01,  # 0.0001,
         "scheduler:factor": 0.6,
         "scheduler:patience": 2,
-        "train:max_epochs": 1,  # 1, # 5,  # 150,
+        "train:max_epochs": 20,  # 1, # 5,  # 150,
         "train:max_lrs": 5,
         "train:non_blocking": True,
         "train:train_per_valid_times": 1,
@@ -143,6 +144,7 @@ if __name__ == '__main__':
         SETTINGS["train:max_epochs"], SETTINGS["train:max_lrs"],
         {"train": train_dataloader, "validation": valid_dataloader},
         train_valid_loops=SETTINGS["train:train_per_valid_times"],
+        use_checkpoint=SETTINGS["prev_checkpoint"]
     )
 
 

@@ -4,6 +4,7 @@ import time
 
 import torch
 from torch.utils.data import DataLoader
+from torch.cuda.amp import autocast, GradScaler
 from tqdm import tqdm
 
 from models.utils import get_cpu_copy, save_checkpoint
@@ -46,26 +47,40 @@ class ImgTrainer:
 
     def run(
             self, max_epochs, max_learning_rates, dataloaders,
-            non_blocking=True, train_valid_loops=1, save_last_model=False,
+            non_blocking=True, train_valid_loops=1, save_last_model=False, use_checkpoint=None
         ):
         # Prepare model
         self.model = self.model.to(self.device)
 
         # Save first checkpoint
-        save_checkpoint(
-            # Base values
-            self.checkpoint_dst, model=self.model,
-            criterion=self.criterion,
-            optimizer=self.optimizer,
-            scheduler=self.scheduler,
-            # Epoch values
-            epoch=None, accuracy=None, loss=None,
-        )
+        if not use_checkpoint:
+            save_checkpoint(
+                # Base values
+                self.checkpoint_dst, model=self.model,
+                criterion=self.criterion,
+                optimizer=self.optimizer,
+                scheduler=self.scheduler,
+                # Epoch values
+                epoch=None, accuracy=None, loss=None,
+            )
 
-        # Starting values
-        best_validation_acc = 0.0
-        best_validation_loss = float("inf")
-        used_lrs = [self.optimizer.param_groups[0]["lr"]]
+            # Starting values
+            best_validation_acc = 0.0
+            best_validation_loss = float("inf")
+        else:
+            print(">> Loading checkpoint...")
+            checkpoint_dst = os.path.join('/'.join(self.checkpoint_dst.split('/')[:-1]), f"{use_checkpoint}.tar")
+            best_checkpoint = torch.load(checkpoint_dst, map_location=torch.device("cpu"))
+            self.model.load_state_dict(best_checkpoint["model"])
+
+            # Move model back to device
+            self.model.to(self.device)
+
+            # Starting values
+            best_validation_acc = best_checkpoint['accuracy']
+            best_validation_loss = best_checkpoint['loss']
+
+        used_lrs = [self.optimizer.param_groups[0]["lr"]]  # TODO: handle checkpoint case
 
         # Measure elapsed time
         start = time.time()
@@ -100,6 +115,8 @@ class ImgTrainer:
         )
 
         # Training loop
+        # scaler = GradScaler()
+
         for epoch in range(1, max_epochs + 1):
             # Each epoch has a training and a validation phase
             for phase in ["train", "validation"]:
@@ -130,13 +147,18 @@ class ImgTrainer:
 
                         # Forward pass
                         with torch.set_grad_enabled(phase == "train"):
+                            # with autocast():
                             pos, neg = self.model(profile, pimg, nimg)
                             output = pos-neg
                             loss = self.criterion(output, target)
+
                             # Backward pass
                             if phase == "train":
                                 loss.backward()
                                 self.optimizer.step()
+                                # scaler.scale(loss).backward()
+                                # scaler.step(self.optimizer)
+                                # scaler.update()
 
                         # Statistics
                         running_acc.add_((output > 0).sum())
