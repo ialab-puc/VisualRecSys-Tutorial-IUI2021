@@ -16,4 +16,4 @@ presented at the 2021 ACM Conference on Intelligent User Interfaces (IUI 2021).
 * Pytorch 1.7
 * Python 3.7+
 
-## Syllabus
+## Program
