@@ -15,7 +15,7 @@ Note that we do not consider the GAN element of the paper in this work.
 
 
 class CNN(nn.Module):
-    def __init__(self, hidden_dim=2048, fc_dim=256, weights=None, dropout=0.5):
+    def __init__(self, hidden_dim=2048, fc_dim=64, weights=None, dropout=0.5):
         super(CNN, self).__init__()
         self.hidden_dim = hidden_dim
 
@@ -26,12 +26,12 @@ class CNN(nn.Module):
                 'cnn': [([3, 64, 11], [1, 4]),
                         ([64, 256, 5], None),
                         ([256, 256, 3], None),
-                        ([256, 256, 3], None), 
+                        ([256, 256, 3], None),
                         ([256, 256, 3], None)],
                     
                 # fc layers: n_in, n_out
                 'fc': [[256*22*2, fc_dim],  # original: 256*7*7 -> 4096
-                    [fc_dim, fc_dim],
+                    # [fc_dim, fc_dim],
                     [fc_dim, self.hidden_dim]]
             }
 
@@ -78,10 +78,17 @@ class DVBPR(nn.Module):
         self.cache = None
 
         # CNN for learned image features
-        self.cnn = CNN(hidden_dim=K)
-        # alexnet = models.alexnet(pretrained=True)
-        # alexnet.classifier = torch.nn.Sequential(*(list(alexnet.classifier.children())[:-1] + [nn.Linear(4096, K)]))
-        # self.cnn = alexnet
+        # tried premade architectures for faster training:
+        # squeezenet, cnnf, resnet: 4hrs epoch, no go
+        # alexnet: 1hrs epoch, to beat
+        # densenets: 18hrs
+        # mnasnet: 2:50 hrs
+        # self.cnn = CNN(hidden_dim=K)
+        model = models.alexnet(pretrained=True)
+        len_final_layer = model.classifier[-1].weight.shape[1]  # (model.classifier.children())[:-1][1].weight.shape[0]
+        model.classifier[-1] = nn.Linear(len_final_layer, K)
+        # model.classifier = nn.Linear(len_final_layer, K)
+        self.cnn = model
         # self.cnn = nn.Embedding.from_pretrained(torch.Tensor(features), freeze=True)
 
         # Visual latent preference (theta)
@@ -150,7 +157,7 @@ class DVBPR(nn.Module):
         """ Restart network weights using a Xavier uniform distribution. """
         nn.init.xavier_uniform_(self.theta_users.weight)  # Visual factors (theta)
         nn.init.xavier_uniform_(self.beta_users.weight)  # Biases (beta)
-        self.cnn.reset_parameters() # CNN
+        # self.cnn.reset_parameters() # CNN
 
     def generate_cache(self, img_list, grad_enabled=False, device='cpu'):
         cache = []
