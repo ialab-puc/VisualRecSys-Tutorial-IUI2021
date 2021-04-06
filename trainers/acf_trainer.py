@@ -5,7 +5,7 @@ import torch
 from torch.utils.data import DataLoader
 from torch import tensor
 import numpy as np
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 from utils.logger import Log
 
@@ -42,8 +42,8 @@ class ACFTrainer():
     """
     Handles training process
     """
-    def __init__(self, model, datasets, loss, optimizer, run_name, batch_size=100, device=None,
-                 test_size=10, max_profile_size=9, pad_token=0):
+    def __init__(self, model, datasets, loss, optimizer, version, batch_size=100, device=None,
+                 max_profile_size=9, checkpoint_dir=None):
         """
         Parameters
         ----------
@@ -54,29 +54,37 @@ class ACFTrainer():
         run_name: directory to save results
         batch_size: number of samples to process for one update
         device: gpu or cpu
-        test_size: number of tail items for each user to leave for test
         """
+        self.pad_token = 0
+
+        self.version = version
         self.best_loss = np.inf
         self.loss = loss
-        self.model = model
-        # self.dataset = dataset
         self.optimizer = optimizer
-        self.pad_token = pad_token
         self.batch_size = batch_size
-        self.logger = Log(run_name)
-        self.device = get_device(device)
+
+        self.logger = Log(self.version)
+        self.device = get_device(self.device)
+        self.model = model
         self.model = self.model.to(self.device)
+
         self.train, self.test = datasets
         self.all_items = self.preprocess_inputs(self.train.items, to_tensor=True)
 
-        self.test_loader = DataLoader(self.test, batch_size=batch_size, shuffle=True,
-                                      collate_fn=generate_collate_fn(max_profile_size), num_workers=1)
         self.train_loader = DataLoader(self.train, batch_size=batch_size, shuffle=True,
                                        collate_fn=generate_collate_fn(max_profile_size), num_workers=8)
+        self.test_loader = DataLoader(self.test, batch_size=batch_size, shuffle=True,
+                                      collate_fn=generate_collate_fn(max_profile_size), num_workers=1)
+
+        if checkpoint_dir is None:
+            checkpoint_dir = os.path.join("checkpoints")
+        assert os.path.isdir(checkpoint_dir)
+        self.checkpoint_dir = checkpoint_dir
 
     @property
     def state(self):
         state = {
+            "model_args": self.model.args(),
             "state_dict": self.model.state_dict(),
             "optimizer": self.optimizer.state_dict(),
         }
