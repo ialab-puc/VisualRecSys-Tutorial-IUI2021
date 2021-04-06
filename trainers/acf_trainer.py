@@ -63,7 +63,6 @@ class ACFTrainer():
         self.optimizer = optimizer
         self.batch_size = batch_size
 
-        self.logger = Log(self.version)
         self.device = get_device(self.device)
         self.model = model
         self.model = self.model.to(self.device)
@@ -80,6 +79,7 @@ class ACFTrainer():
             checkpoint_dir = os.path.join("checkpoints")
         assert os.path.isdir(checkpoint_dir)
         self.checkpoint_dir = checkpoint_dir
+        self.logger = Log(self.version, checkpoint_dir=self.checkpoint_dir)
 
     @property
     def state(self):
