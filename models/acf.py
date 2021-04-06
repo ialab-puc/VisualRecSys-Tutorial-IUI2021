@@ -56,7 +56,7 @@ class ACFFeatureNet(nn.Module):
         x = profile_mask * x
         output = {'pooled_features': x}
         if return_attentions:
-            output['attentions'] = beta
+            output['attentions'] = beta.squeeze(-1).squeeze(-1)
         return output
 
 
@@ -65,8 +65,9 @@ class ACFUserNet(nn.Module):
     Get user embedding accounting to surpassed items
     """
 
-    def __init__(self, users, items, emb_dim=128, input_feature_dim=0, padding_idx=0, device=None):
+    def __init__(self, users, items, emb_dim=128, input_feature_dim=0, profile_embedding=None, device=None):
         super().__init__()
+        self.pad_token = 0
 
         self.emb_dim = emb_dim
         num_users = max(users) + 1
@@ -76,8 +77,10 @@ class ACFUserNet(nn.Module):
         self.feats = ACFFeatureNet(emb_dim, input_feature_dim, reduced_feature_dim) if input_feature_dim > 0 else None
 
         self.user_embedding = nn.Embedding(num_users, emb_dim)
-        self.profile_embedding = nn.Embedding(num_items, emb_dim, padding_idx=padding_idx)
-        self.item_embedding = nn.Embedding(num_items, emb_dim, padding_idx=padding_idx)
+        if not profile_embedding:
+            self.profile_embedding = nn.Embedding(num_items, emb_dim, padding_idx=self.pad_token)
+        else:
+            self.profile_embedding = profile_embedding
 
         f = 1 if self.feats is not None else 0
         self.w_u = nn.Linear(emb_dim, emb_dim)
@@ -94,6 +97,7 @@ class ACFUserNet(nn.Module):
 
         if device is None:
             device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
         self.device = device
 
     def _kaiming_(self, layer):
@@ -148,7 +152,7 @@ class ACFUserNet(nn.Module):
         if return_component_attentions:
             output['component_attentions'] = feat_output['attentions']
         if return_profile_attentions:
-            output['profile_attentions'] = alpha
+            output['profile_attentions'] = alpha.squeeze(-1)
 
         return output
 
@@ -165,19 +169,32 @@ class ACFUserNet(nn.Module):
 
 
 class ACF(nn.Module):
-    def __init__(self, users, items, feature_path, emb_dim=128, input_feature_dim=0, padding_idx=0, device=None):
+    def __init__(self, users, items, feature_path, emb_dim=128, input_feature_dim=0, device=None):
         super().__init__()
-        self.pad_token = padding_idx
+        self.pad_token = 0
         self.device = device
 
         # Should be moved to an ACFRecommender
+        self.users = users
+        self.items = items
+        self.feature_path = feature_path
+        self.emb_dim = emb_dim
+        self.input_feature_dim = input_feature_dim
+
         self.all_items = torch.tensor(items)
-        self.feature_data, self.feature_default_idx = self.load_feature_data(feature_path)
-        self.feature_dim = self.feature_data.shape[-1]
+        self.all_items = self.all_items + 1 if self.all_items.min() == 0 else self.all_items
+        self.feature_data = self.load_feature_data(feature_path)
         num_items = max(self.all_items) + 1
 
-        self.user_model = ACFUserNet(users, items, emb_dim=emb_dim, input_feature_dim=input_feature_dim, device=device)
-        self.item_model = nn.Embedding(num_items, emb_dim, padding_idx=padding_idx)
+        input_feature_dim = self.feature_data.shape[-1]
+        self.item_model = nn.Embedding(num_items, emb_dim, padding_idx=self.pad_token)
+        self.user_model = ACFUserNet(
+            users,
+            items,
+            emb_dim=emb_dim,
+            input_feature_dim=input_feature_dim,
+            profile_embedding=self.item_model,
+            device=device)
 
     def forward(self, user_id, profile_ids, pos, neg, profile_mask):
         profile_features = self.get_features(profile_ids).to(self.device)
@@ -221,19 +238,45 @@ class ACF(nn.Module):
         feature_data = np.array(feature_data) # Faster when transformed to numpy first
         feature_data = torch.tensor(feature_data)
         feature_data = feature_data.permute((0,2,3,1)) # TODO: Hack: by default d should be last dimension
-        feature_data, default_idx = self.append_default_features(feature_data)
-        return feature_data, default_idx
+        feature_data = self.append_default_features(feature_data)
+        return feature_data
 
     def append_default_features(self, feature_data):
         feature_dims = feature_data.shape[1:]
         default_features = torch.zeros((1, *feature_dims))
         feature_data = torch.cat((default_features, feature_data), dim=0)
-        default_idx = 0
-        return feature_data, default_idx
+        return feature_data
 
     def get_features(self, ids):
         if isinstance(ids, int):
                 ids = torch.tensor([ids])
         if isinstance(ids, list):
                 ids = torch.tensor(ids)
+
         return self.feature_data[ids]
+
+    def args(self):
+        return {
+            users: self.users,
+            items: self.items,
+            feature_path: self.feature_path,
+            emb_dim: self.emb_dim,
+            input_feature_dim: self.input_feature_dim,
+        }
+
+    @classmethod
+    def from_checkpoint(cls, checkpoint, device=None):
+        args = checkpoint['model_args']
+        model = cls(
+            users=args['users'],
+            items=args['items'],
+            feature_path=args['feature_path'],
+            emb_dim=args['emb_dim'],
+            input_feature_dim=args['input_feature_dim'],
+            device=device,
+        )
+        model.load_state_dict(checkpoint['state_dict'])
+        if device:
+            model = model.to(device)
+
+        return model
