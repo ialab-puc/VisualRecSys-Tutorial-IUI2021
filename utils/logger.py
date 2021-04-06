@@ -12,11 +12,11 @@ class Log():
     It prints messages, writes them to log file, writes metrics for tensorboard and saves model.
     Everything is saved to runs/<model_name> directory.
     """
-    def __init__(self, model_name):
-        if not os.path.exists('runs'):
-            os.mkdir('runs')
+    def __init__(self, model_name, checkpoint_dir='runs'):
+        if not os.path.exists(checkpoint_dir):
+            os.mkdir(checkpoint_dir)
 
-        path = os.path.join('runs', model_name)
+        path = os.path.join(checkpoint_dir, model_name)
         if not os.path.exists(path):
             os.mkdir(path)
         else:
@@ -31,9 +31,8 @@ class Log():
         Write <text> both to log and stdout
         """
         print(text)
-        f = open(f"{self.path}/log.txt", "a+")
-        f.write(text + '\n')
-        f.close()
+        with open(f"{self.path}/log.txt", "a+") as f:
+            f.write(text + '\n')
 
     def epoch(self, n, phase):
         start = time.strftime("%H:%M:%S")
