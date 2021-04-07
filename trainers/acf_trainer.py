@@ -59,6 +59,7 @@ class ACFTrainer():
         self.pad_token = 0
 
         self.version = version
+        self.epoch = 0
         self.best_loss = np.inf
         self.loss = loss
         self.optimizer = optimizer
@@ -85,6 +86,8 @@ class ACFTrainer():
     @property
     def state(self):
         state = {
+            "epoch": self.epoch,
+            "loss": self.best_loss,
             "model_args": self.model.args(),
             "state_dict": self.model.state_dict(),
             "optimizer": self.optimizer.state_dict(),
@@ -95,6 +98,7 @@ class ACFTrainer():
         num_train_batches = len(self.train) / self.batch_size
         num_test_batches = len(self.test) / self.batch_size
         for epoch in tqdm(range(num_epochs)):
+            self.epoch = epoch
             for phase in ['train', 'val']:
                 self.logger.epoch(epoch, phase)
                 self.model.train(phase == 'train')
