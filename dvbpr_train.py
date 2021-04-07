@@ -18,26 +18,28 @@ from utils.data import extract_embedding
 if __name__ == '__main__':
     # Parameters
     RNG_SEED = 0
-    BASE_PATH = '/home/pcerdam/Documents/VisualRecSys-Tutorial-IUI2021/'
+    BASE_PATH = '/home/pcerdam/VisualRecSys-Tutorial-IUI2021/'
     TRAINING_PATH = os.path.join(BASE_PATH, "data", "naive-user-train.csv")
     EMBEDDING_PATH = os.path.join(BASE_PATH, "data", "embedding-resnet50.npy")
     VALIDATION_PATH = os.path.join(BASE_PATH, "data", "naive-user-validation.csv")
-    IMAGES_PATH = os.path.join(BASE_PATH, "data", "mini-images-224-224-v2/mini-images-224-224-v2")
+    IMAGES_PATH = os.path.join('/mnt/data2/wikimedia/mini-images-224-224-v2')
     CHECKPOINTS_DIR = os.path.join(BASE_PATH, "checkpoints")
     version = f"DVBPR_wikimedia_AlexNetK2048"
     USE_GPU = True # False #
+    version = 'DVBPR_wikimediaAlexNetBig2048_5epochs'
 
     # Parameters (training)
     SETTINGS = {
-        "dataloader:batch_size": 128, #10_000,  # 42_000,# 512, # 256,  #  512, # 64,  # 64,  # 24,   # x
-        "dataloader:num_workers": os.cpu_count(),  # 1,  #
-        "prev_checkpoint": False, #'DVBPR_wikimediaAlexNetfrozen1epoch',
-        "model:dim_visual": 2048,  #50,  #
+        "dataloader:batch_size": 128, # 256,  #  512, # 64,  # 64,  # 24,  # 42_000,128,  # x
+        "dataloader:num_workers": 4, # os.cpu_count(),  # 1,  #
+        "prev_checkpoint": False, # 'DVBPR_wikimediaAlexNetBig204_5epochs',
+        "model:dim_visual": 2048,  #
         "optimizer:lr": 0.001,
         "optimizer:weight_decay": 0.0001,
         "scheduler:factor": 0.6,
         "scheduler:patience": 2,
         "train:max_epochs": 10,  # 1, # 5,  # 150,
+        "train:max_epochs": 5,  # 1, # 5,  # 150,
         "train:max_lrs": 5,
         "train:non_blocking": True,
         "train:train_per_valid_times": 1  # 0
