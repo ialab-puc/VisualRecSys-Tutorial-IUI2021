@@ -85,6 +85,11 @@ class DVBPR(nn.Module):
         # mnasnet: 2:50 hrs
         # self.cnn = CNN(hidden_dim=K)
         model = models.alexnet(pretrained=True)
+
+        # freeze
+        for param in model.parameters():
+            param.requires_grad = False
+
         len_final_layer = model.classifier[-1].weight.shape[1]  # (model.classifier.children())[:-1][1].weight.shape[0]
         model.classifier[-1] = nn.Linear(len_final_layer, K)
         # model.classifier = nn.Linear(len_final_layer, K)
@@ -119,20 +124,12 @@ class DVBPR(nn.Module):
         ui_visual_factors = self.theta_users(ui)  # Visual factors of user u
         ui_bias = self.beta_users(ui)
 
-        #print('bias', ui_bias.squeeze().shape)
-        #print('factors', ui_visual_factors.shape)
         # Items
         pi_features = self.cnn(pimg)  # Pos. item visual features
         ni_features = self.cnn(nimg)  # Neg. item visual features
-        #print('pimgfeat', pi_features.shape)
-        #print('nimgfeat', ni_features.shape)
-
-        #print('mmul', (ui_visual_factors * pi_features).shape)
 
         x_ui = ui_bias.squeeze() + (ui_visual_factors * pi_features).sum(1)
         x_uj = ui_bias.squeeze() + (ui_visual_factors * ni_features).sum(1)
-        #print('x_ui', x_ui.shape)
-        #print('x_uj', x_uj.shape)
 
         return x_ui, x_uj
 
@@ -155,7 +152,7 @@ class DVBPR(nn.Module):
 
     def reset_parameters(self):
         """ Restart network weights using a Xavier uniform distribution. """
-        nn.init.xavier_uniform_(self.theta_users.weight)  # Visual factors (theta)
+        nn.init.uniform_(self.theta_users.weight)  # Visual factors (theta)
         nn.init.xavier_uniform_(self.beta_users.weight)  # Biases (beta)
         # self.cnn.reset_parameters() # CNN
 

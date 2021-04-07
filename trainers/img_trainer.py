@@ -152,6 +152,8 @@ class ImgTrainer:
                             output = pos-neg
                             loss = self.criterion(output, target)
 
+                            loss += (1.0 * torch.norm(self.model.theta_users.weight))
+
                             # Backward pass
                             if phase == "train":
                                 loss.backward()
