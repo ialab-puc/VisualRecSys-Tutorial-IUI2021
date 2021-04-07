@@ -1,4 +1,5 @@
 from copy import deepcopy
+import os
 from typing import Sequence
 
 import torch
@@ -63,7 +64,7 @@ class ACFTrainer():
         self.optimizer = optimizer
         self.batch_size = batch_size
 
-        self.device = get_device(self.device)
+        self.device = get_device(device)
         self.model = model
         self.model = self.model.to(self.device)
 
@@ -129,16 +130,6 @@ class ACFTrainer():
 
     def get_profile_mask(self, profile_ids):
         return (profile_ids != self.pad_token).to(self.device)
-
-    def get_predictions(self, user, items):
-        item_embeddings = self.model.item_embedding(items)
-        prediction = self.model.score(user, item_embeddings)
-        return prediction
-
-    def predict(self, user_id, item_ids):
-        user = self.get_user_embedding(user_id)
-        pred = self.get_predictions(user, item_ids)
-        return pred
 
     def training_step(self, batch):
         user_id, profile_ids, pos, neg = self.preprocess_inputs(*batch)

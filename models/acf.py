@@ -156,9 +156,6 @@ class ACFUserNet(nn.Module):
 
         return output
 
-    def score(self, user, items):
-        return (user * items).sum(1) / self.emb_dim
-
     @property
     def params(self):
         params_to_update = []
@@ -169,7 +166,15 @@ class ACFUserNet(nn.Module):
 
 
 class ACF(nn.Module):
-    def __init__(self, users, items, feature_path, emb_dim=128, input_feature_dim=0, device=None):
+    def __init__(self,
+                 users,
+                 items,
+                 feature_path,
+                 model_dim=128,
+                 input_feature_dim=0,
+                 tied_item_embedding=True,
+                 device=None):
+
         super().__init__()
         self.pad_token = 0
         self.device = device
@@ -178,7 +183,7 @@ class ACF(nn.Module):
         self.users = users
         self.items = items
         self.feature_path = feature_path
-        self.emb_dim = emb_dim
+        self.model_dim = model_dim
         self.input_feature_dim = input_feature_dim
 
         self.all_items = torch.tensor(items)
@@ -187,14 +192,23 @@ class ACF(nn.Module):
         num_items = max(self.all_items) + 1
 
         input_feature_dim = self.feature_data.shape[-1]
-        self.item_model = nn.Embedding(num_items, emb_dim, padding_idx=self.pad_token)
-        self.user_model = ACFUserNet(
-            users,
-            items,
-            emb_dim=emb_dim,
-            input_feature_dim=input_feature_dim,
-            profile_embedding=self.item_model,
-            device=device)
+        self.item_model = nn.Embedding(num_items, self.model_dim, padding_idx=self.pad_token)
+        self.user_model = (
+            ACFUserNet(
+                users,
+                items,
+                emb_dim=self.model_dim,
+                input_feature_dim=input_feature_dim,
+                profile_embedding=self.item_model,
+                device=self.device)
+        if tied_item_embedding else
+            ACFUserNet(
+                users,
+                items,
+                emb_dim=self.model_dim,
+                input_feature_dim=input_feature_dim,
+                device=self.device)
+        )
 
     def forward(self, user_id, profile_ids, pos, neg, profile_mask):
         profile_features = self.get_features(profile_ids).to(self.device)
@@ -209,8 +223,11 @@ class ACF(nn.Module):
 
     def get_predictions(self, user, items):
         item_embeddings = self.item_model(items)
-        prediction = self.user_model.score(user, item_embeddings)
+        prediction = self.score(user, item_embeddings)
         return prediction
+
+    def score(self, user, items):
+        return (user * items).sum(1) / self.model_dim
 
     def recommend_all(self, user_id, profile_ids, return_attentions=False):
         # TODO: Improve
@@ -222,7 +239,7 @@ class ACF(nn.Module):
 
         all_items = self.all_items.to(self.device)
         item_embeddings = self.item_model(all_items)
-        scores = self.user_model.score(user, item_embeddings)
+        scores = self.score(user, item_embeddings)
 
         if return_attentions:
             component_attentions = user_output['component_attentions']
@@ -257,11 +274,11 @@ class ACF(nn.Module):
 
     def args(self):
         return {
-            users: self.users,
-            items: self.items,
-            feature_path: self.feature_path,
-            emb_dim: self.emb_dim,
-            input_feature_dim: self.input_feature_dim,
+            'users': self.users,
+            'items': self.items,
+            'feature_path': self.feature_path,
+            'model_dim': self.model_dim,
+            'input_feature_dim': self.input_feature_dim,
         }
 
     @classmethod
@@ -271,7 +288,7 @@ class ACF(nn.Module):
             users=args['users'],
             items=args['items'],
             feature_path=args['feature_path'],
-            emb_dim=args['emb_dim'],
+            model_dim=args['model_dim'],
             input_feature_dim=args['input_feature_dim'],
             device=device,
         )
