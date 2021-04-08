@@ -150,7 +150,9 @@ class ImgTrainer:
                             # with autocast():
                             pos, neg = self.model(profile, pimg, nimg)
                             output = pos-neg
+                            target = target#.unsqueeze(dim=-1).unsqueeze(dim=-1)
                             loss = self.criterion(output, target)
+                            #loss = self.criterion(pos, neg, target)
 
                             loss += (1.0 * torch.norm(self.model.theta_users.weight))
 

@@ -24,12 +24,12 @@ if __name__ == '__main__':
     VALIDATION_PATH = os.path.join(BASE_PATH, "data", "naive-user-validation.csv")
     IMAGES_PATH = os.path.join(BASE_PATH, "data", "mini-images-224-224-v2/mini-images-224-224-v2")
     CHECKPOINTS_DIR = os.path.join(BASE_PATH, "checkpoints")
-    version = f"DVBPR_wikimedia_AlexNetK2048"
+    version = f"DVBPR_wikimedia_resnetEmbTable"
     USE_GPU = True # False #
 
     # Parameters (training)
     SETTINGS = {
-        "dataloader:batch_size": 128, #10_000,  # 42_000,# 512, # 256,  #  512, # 64,  # 64,  # 24,   # x
+        "dataloader:batch_size": 42_000,#10_000,  # # 512, # 256,  #  512, # 64,  # 64,  # 24,   # x
         "dataloader:num_workers": os.cpu_count(),  # 1,  #
         "prev_checkpoint": False, #'DVBPR_wikimediaAlexNetfrozen1epoch',
         "model:dim_visual": 2048,  #50,  #
@@ -37,7 +37,7 @@ if __name__ == '__main__':
         "optimizer:weight_decay": 0.0001,
         "scheduler:factor": 0.6,
         "scheduler:patience": 2,
-        "train:max_epochs": 10,  # 1, # 5,  # 150,
+        "train:max_epochs": 5,  # 1, # 5,  # 150,
         "train:max_lrs": 5,
         "train:non_blocking": True,
         "train:train_per_valid_times": 1  # 0
@@ -74,8 +74,8 @@ if __name__ == '__main__':
     print(f">> Training dataset: {len(train_dataset)}")
     train_sampler = RandomSampler(train_dataset)
     train_dataloader = DataLoader(
-        #train_dataset,
-        Subset(train_dataset, list(range(10000))), #  subset for faster tests
+        train_dataset,
+        #Subset(train_dataset, list(range(10000))), #  subset for faster tests
         batch_size=SETTINGS["dataloader:batch_size"],
         num_workers=SETTINGS["dataloader:num_workers"],
         shuffle=True,
@@ -92,8 +92,8 @@ if __name__ == '__main__':
     print(f">> Validation dataset: {len(valid_dataset)}")
     valid_sampler = SequentialSampler(valid_dataset)
     valid_dataloader = DataLoader(
-        Subset(valid_dataset, list(range(10000))),  #  subset for faster tests
-        #valid_dataset,
+        #Subset(valid_dataset, list(range(10000))),  #  subset for faster tests
+        valid_dataset,
         batch_size=SETTINGS["dataloader:batch_size"],
         num_workers=SETTINGS["dataloader:num_workers"],
         shuffle=True,
@@ -114,6 +114,7 @@ if __name__ == '__main__':
     print(torch.Tensor(embedding).shape)
     model = DVBPR(
         N_USERS,  # Number of users and items
+        N_ITEMS,
         embedding,  # experiments for debugging
         SETTINGS["model:dim_visual"],  # Size of visual spaces
     ).to(device)
@@ -127,7 +128,7 @@ if __name__ == '__main__':
         lr=SETTINGS["optimizer:lr"],
         weight_decay=SETTINGS["optimizer:weight_decay"],
     )
-    criterion = nn.BCEWithLogitsLoss(reduction="sum")  # bpr_loss  # nn.MarginRankingLoss(reduction="mean")
+    criterion = nn.BCEWithLogitsLoss(reduction="sum")  # bpr_loss  # # # nn.MarginRankingLoss(reduction="mean")
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode="max", factor=SETTINGS["scheduler:factor"],
         patience=SETTINGS["scheduler:patience"], verbose=True,
