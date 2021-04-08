@@ -140,6 +140,8 @@ class ImgTrainer:
                         profile = data[0].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
                         pimg = data[1].to(self.device, non_blocking=non_blocking).squeeze(dim=0)  # transforms.ToPILImage()(pimg[0]).show()
                         nimg = data[2].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
+                        pi = data[3].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
+                        ni = data[4].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
                         target = torch.ones(pimg.size(0), device=self.device)
 
                         # Restart params gradients
@@ -148,7 +150,7 @@ class ImgTrainer:
                         # Forward pass
                         with torch.set_grad_enabled(phase == "train"):
                             # with autocast():
-                            pos, neg = self.model(profile, pimg, nimg)
+                            pos, neg = self.model(profile, pimg, nimg, pi, ni)
                             output = pos-neg
                             target = target#.unsqueeze(dim=-1).unsqueeze(dim=-1)
                             loss = self.criterion(output, target)

@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     # Parameters (training)
     SETTINGS = {
-        "dataloader:batch_size": 42_000,#10_000,  # # 512, # 256,  #  512, # 64,  # 64,  # 24,   # x
+        "dataloader:batch_size": 128,  # 10_000,  # # 512, # 256,  #  512, # 64,  # 64,  # 24,   # x
         "dataloader:num_workers": os.cpu_count(),  # 1,  #
         "prev_checkpoint": False, #'DVBPR_wikimediaAlexNetfrozen1epoch',
         "model:dim_visual": 2048,  #50,  #
@@ -37,7 +37,7 @@ if __name__ == '__main__':
         "optimizer:weight_decay": 0.0001,
         "scheduler:factor": 0.6,
         "scheduler:patience": 2,
-        "train:max_epochs": 5,  # 1, # 5,  # 150,
+        "train:max_epochs": 1,  # 1, # 5,  # 150,
         "train:max_lrs": 5,
         "train:non_blocking": True,
         "train:train_per_valid_times": 1  # 0

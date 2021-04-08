@@ -84,18 +84,18 @@ class DVBPR(nn.Module):
         # densenets: 18hrs
         # mnasnet: 2:50 hrs
         # self.cnn = CNN(hidden_dim=K)
-        #model = models.alexnet(pretrained=True)
+        model = models.alexnet(pretrained=True)
 
         # freeze
         #for param in model.parameters():
         #    param.requires_grad = False
 
-        #len_final_layer = model.classifier[-1].weight.shape[1]  # (model.classifier.children())[:-1][1].weight.shape[0]
-        #model.classifier[-1] = nn.Linear(len_final_layer, K)
+        len_final_layer = model.classifier[-1].weight.shape[1]  # (model.classifier.children())[:-1][1].weight.shape[0]
+        model.classifier[-1] = nn.Linear(len_final_layer, K)
         # model.classifier = nn.Linear(len_final_layer, K)
         # model.classifier = model.classifier[:-1] # Full freeze
-        #self.cnn = model
-        self.cnn = nn.Embedding.from_pretrained(torch.Tensor(features))#, freeze=False)
+        self.cnn = model
+        # self.cnn = nn.Embedding.from_pretrained(torch.Tensor(features))#, freeze=False)
 
         # Visual latent preference (theta)
         self.theta_users = nn.Embedding(n_users, K)
@@ -110,7 +110,7 @@ class DVBPR(nn.Module):
         # Random weight initialization
         self.reset_parameters()
 
-    def forward(self, ui, pimg, nimg):
+    def forward(self, ui, pimg, nimg, pi, ni):
         """Forward pass of the model.
 
         Feed forward a given input (batch). Each object is expected
@@ -134,8 +134,8 @@ class DVBPR(nn.Module):
         pi_features = self.cnn(pimg)  # Pos. item visual features
         ni_features = self.cnn(nimg)  # Neg. item visual features
 
-        pi_latent_factors = self.gamma_items(pimg)  # Pos. item visual factors
-        ni_latent_factors = self.gamma_items(nimg)  # Neg. item visual factors
+        pi_latent_factors = self.gamma_items(pi)  # Pos. item visual factors
+        ni_latent_factors = self.gamma_items(ni)  # Neg. item visual factors
 
         x_ui = (ui_visual_factors * pi_features).sum(1) + (pi_latent_factors * ui_latent_factors).sum(1)  # + ui_bias.squeeze()
         x_uj = (ui_visual_factors * ni_features).sum(1) + (ni_latent_factors * ui_latent_factors).sum(1)  # + ui_bias.squeeze()
@@ -162,7 +162,8 @@ class DVBPR(nn.Module):
     def reset_parameters(self):
         """ Restart network weights using a Xavier uniform distribution. """
         nn.init.uniform_(self.theta_users.weight)  # Visual factors (theta)
-        #[nn.init.uniform_(layer.weight) for layer in self.theta_users]
+        nn.init.uniform_(self.gamma_users.weight)  # Visual factors (theta)
+        nn.init.uniform_(self.gamma_items.weight)  # Visual factors (theta)
         # nn.init.xavier_uniform_(self.beta_users.weight)  # Biases (beta)
         # self.cnn.reset_parameters() # CNN
 
