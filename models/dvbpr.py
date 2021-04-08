@@ -84,7 +84,7 @@ class DVBPR(nn.Module):
         # densenets: 18hrs
         # mnasnet: 2:50 hrs
         # self.cnn = CNN(hidden_dim=K)
-        model = models.alexnet(pretrained=True)
+        model = models.alexnet() #pretrained=True)
 
         # freeze
         #for param in model.parameters():

@@ -26,19 +26,19 @@ if __name__ == '__main__':
     CHECKPOINTS_DIR = os.path.join(BASE_PATH, "checkpoints")
     version = f"DVBPR_wikimedia_resnetEmbTable"
     USE_GPU = True # False #
-    version = 'DVBPR_wikimediaAlexNetBig2048_5epochs'
+    version = 'DVBPR_wikimediaAlexNet_notPretrained_100_wLatent'
 
     # Parameters (training)
     SETTINGS = {
         "dataloader:batch_size": 128, # 256,  #  512, # 64,  # 64,  # 24,  # 42_000,128,  # x
         "dataloader:num_workers": 4, # os.cpu_count(),  # 1,  #
         "prev_checkpoint": False, # 'DVBPR_wikimediaAlexNetBig204_5epochs',
-        "model:dim_visual": 2048,
+        "model:dim_visual": 100, #2048,
         "optimizer:lr": 0.001,
         "optimizer:weight_decay": 0.0001,
         "scheduler:factor": 0.6,
         "scheduler:patience": 2,
-        "train:max_epochs": 10,  # 1, # 5,  # 150,
+        "train:max_epochs": 5,  # 1, # 5,  # 150,
         "train:max_lrs": 5,
         "train:non_blocking": True,
         "train:train_per_valid_times": 1  # 0
