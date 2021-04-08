@@ -74,10 +74,11 @@ class UserModeImgDataset(Dataset):
 
         nimgpath = os.path.join(self.__images_path, self.index2fn[self.ni[idx]])
         nimg = Image.open(nimgpath)
-        tuple = self.transform(self.ui[idx], pimg, nimg)
+        # return (self.ui[idx], self.pi[idx], self.ni[idx])
+        tuple = self.transform(self.ui[idx], pimg, nimg, self.pi[idx], self.ni[idx])
 
         if tuple[1] is not None and tuple[2] is not None:
-            return tuple
+           return tuple
 
 
 class TransformTuple(object):
@@ -85,10 +86,10 @@ class TransformTuple(object):
         assert isinstance(img_size, (int, tuple))
         self.to_tensor = ToTensor()
     
-    def __call__(self, ui, pimg, nimg):
+    def __call__(self, ui, pimg, nimg, pi, ni):
         pimg = self.to_tensor(pimg)
         nimg = self.to_tensor(nimg)
-        return (ui, pimg, nimg)
+        return (ui, pimg, nimg, pi, ni)
 
 
 
