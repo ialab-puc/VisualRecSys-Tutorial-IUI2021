@@ -161,5 +161,5 @@ class DVBPR(nn.Module):
                 img = imgs[img_idx]
                 img = img.to(device).unsqueeze(0)
                 cache.append(self.cnn(img))
-            self.cache = torch.stack(cache)
-            return cache
+            self.cache = torch.stack(cache).to(device)
+            return self.cache
