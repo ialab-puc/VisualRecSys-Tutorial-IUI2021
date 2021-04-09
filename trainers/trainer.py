@@ -131,10 +131,6 @@ class Trainer:
                         # Forward pass
                         with torch.set_grad_enabled(phase == "train"):
                             output = self.model(profile, pi, ni)
-                            print(output.shape, target.shape)
-                            print(output)
-                            print(target)
-                            print('=================')
                             loss = self.criterion(output, target)
                             # Backward pass
                             if phase == "train":

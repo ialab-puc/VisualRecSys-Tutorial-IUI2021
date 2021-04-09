@@ -4,7 +4,6 @@ import time
 
 import torch
 from torch.utils.data import DataLoader
-from torch.cuda.amp import autocast, GradScaler
 from tqdm import tqdm
 
 from models.utils import get_cpu_copy, save_checkpoint
@@ -80,7 +79,7 @@ class ImgTrainer:
             best_validation_acc = best_checkpoint['accuracy']
             best_validation_loss = best_checkpoint['loss']
 
-        used_lrs = [self.optimizer.param_groups[0]["lr"]]  # TODO: handle checkpoint case
+        used_lrs = [self.optimizer.param_groups[0]["lr"]]
 
         # Measure elapsed time
         start = time.time()
@@ -115,7 +114,6 @@ class ImgTrainer:
         )
 
         # Training loop
-        # scaler = GradScaler()
 
         for epoch in range(1, max_epochs + 1):
             # Each epoch has a training and a validation phase
@@ -138,7 +136,7 @@ class ImgTrainer:
                 for _ in range(loop_times):
                     for i_batch, data in enumerate(dataloaders[phase]):
                         profile = data[0].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
-                        pimg = data[1].to(self.device, non_blocking=non_blocking).squeeze(dim=0)  # transforms.ToPILImage()(pimg[0]).show()
+                        pimg = data[1].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
                         nimg = data[2].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
                         pi = data[3].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
                         ni = data[4].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
@@ -149,22 +147,15 @@ class ImgTrainer:
 
                         # Forward pass
                         with torch.set_grad_enabled(phase == "train"):
-                            # with autocast():
                             pos, neg = self.model(profile, pimg, nimg, pi, ni)
                             output = pos-neg
-                            target = target#.unsqueeze(dim=-1).unsqueeze(dim=-1)
                             loss = self.criterion(output, target)
-                            #loss = self.criterion(pos, neg, target)
-
                             loss += (1.0 * torch.norm(self.model.theta_users.weight))
 
                             # Backward pass
                             if phase == "train":
                                 loss.backward()
                                 self.optimizer.step()
-                                # scaler.scale(loss).backward()
-                                # scaler.step(self.optimizer)
-                                # scaler.update()
 
                         # Statistics
                         running_acc.add_((output > 0).sum())

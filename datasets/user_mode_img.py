@@ -74,7 +74,6 @@ class UserModeImgDataset(Dataset):
 
         nimgpath = os.path.join(self.__images_path, self.index2fn[self.ni[idx]])
         nimg = Image.open(nimgpath)
-        # return (self.ui[idx], self.pi[idx], self.ni[idx])
         tuple = self.transform(self.ui[idx], pimg, nimg, self.pi[idx], self.ni[idx])
 
         if tuple[1] is not None and tuple[2] is not None:
