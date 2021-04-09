@@ -11,7 +11,9 @@ import os
 import numpy as np
 import pandas as pd
 from skimage import io, transform
+from PIL import Image
 from torch.utils.data import Dataset
+from torchvision import transforms
 
 
 class UserModeImgDataset(Dataset):
@@ -53,17 +55,6 @@ class UserModeImgDataset(Dataset):
         # Load triples from dataframe
         triples = pd.read_csv(self.__source_file)
 
-        # TODO: this crashes, why?
-        # Process profile elements
-        # if id2index:
-        #     # Note: Assumes id is str and index is int
-        #     def map_id2index(element):
-        #         if type(element) is list:
-        #             return [id2index[e] for e in element]
-        #         else:
-        #             return id2index[str(element)]
-        #     triples[["pi", "ni"]] = triples[["pi", "ni"]].applymap(map_id2index)
-        
         # Keep important attributes
         self.ui = triples["ui"].to_numpy(copy=True)
         self.pi = triples["pi"].to_numpy(copy=True)
@@ -79,25 +70,25 @@ class UserModeImgDataset(Dataset):
 
     def __getitem__(self, idx):
         pimgpath = os.path.join(self.__images_path, self.index2fn[self.pi[idx]])
-        pimg = io.imread(pimgpath)
+        pimg = Image.open(pimgpath)
 
         nimgpath = os.path.join(self.__images_path, self.index2fn[self.ni[idx]])
-        nimg = io.imread(nimgpath)
-        
-        tuple = self.transform(self.ui[idx], pimg, nimg)
-        return tuple
+        nimg = Image.open(nimgpath)
+        tuple = self.transform(self.ui[idx], pimg, nimg, self.pi[idx], self.ni[idx])
+
+        if tuple[1] is not None and tuple[2] is not None:
+           return tuple
 
 
 class TransformTuple(object):
     def __init__(self, img_size):
         assert isinstance(img_size, (int, tuple))
-        # self.rescaler = Rescale(img_size)
         self.to_tensor = ToTensor()
     
-    def __call__(self, ui, pimg, nimg):
-        pimg = self.to_tensor(pimg)  # )self.rescaler(
-        nimg = self.to_tensor(nimg)  # )self.rescaler(
-        return (ui, pimg, nimg)
+    def __call__(self, ui, pimg, nimg, pi, ni):
+        pimg = self.to_tensor(pimg)
+        nimg = self.to_tensor(nimg)
+        return (ui, pimg, nimg, pi, ni)
 
 
 
@@ -128,8 +119,5 @@ class Rescale(object):
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
     def __call__(self, image):
-        # swap color axis because
-        # numpy image: H x W x C
-        # torch image: C X H X W
-        image = image.transpose((2, 0, 1)).astype(np.float32)
-        return torch.from_numpy(image)
+        img = transforms.ToTensor()(image)
+        return img

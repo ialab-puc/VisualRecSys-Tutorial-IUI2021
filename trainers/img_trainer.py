@@ -46,25 +46,39 @@ class ImgTrainer:
 
     def run(
             self, max_epochs, max_learning_rates, dataloaders,
-            non_blocking=True, train_valid_loops=1, save_last_model=False,
+            non_blocking=True, train_valid_loops=1, save_last_model=False, use_checkpoint=None
         ):
         # Prepare model
         self.model = self.model.to(self.device)
 
         # Save first checkpoint
-        save_checkpoint(
-            # Base values
-            self.checkpoint_dst, model=self.model,
-            criterion=self.criterion,
-            optimizer=self.optimizer,
-            scheduler=self.scheduler,
-            # Epoch values
-            epoch=None, accuracy=None, loss=None,
-        )
+        if not use_checkpoint:
+            save_checkpoint(
+                # Base values
+                self.checkpoint_dst, model=self.model,
+                criterion=self.criterion,
+                optimizer=self.optimizer,
+                scheduler=self.scheduler,
+                # Epoch values
+                epoch=None, accuracy=None, loss=None,
+            )
 
-        # Starting values
-        best_validation_acc = 0.0
-        best_validation_loss = float("inf")
+            # Starting values
+            best_validation_acc = 0.0
+            best_validation_loss = float("inf")
+        else:
+            print(">> Loading checkpoint...")
+            checkpoint_dst = os.path.join('/'.join(self.checkpoint_dst.split('/')[:-1]), f"{use_checkpoint}.tar")
+            best_checkpoint = torch.load(checkpoint_dst, map_location=torch.device("cpu"))
+            self.model.load_state_dict(best_checkpoint["model"])
+
+            # Move model back to device
+            self.model.to(self.device)
+
+            # Starting values
+            best_validation_acc = best_checkpoint['accuracy']
+            best_validation_loss = best_checkpoint['loss']
+
         used_lrs = [self.optimizer.param_groups[0]["lr"]]
 
         # Measure elapsed time
@@ -100,6 +114,7 @@ class ImgTrainer:
         )
 
         # Training loop
+
         for epoch in range(1, max_epochs + 1):
             # Each epoch has a training and a validation phase
             for phase in ["train", "validation"]:
@@ -123,6 +138,8 @@ class ImgTrainer:
                         profile = data[0].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
                         pimg = data[1].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
                         nimg = data[2].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
+                        pi = data[3].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
+                        ni = data[4].to(self.device, non_blocking=non_blocking).squeeze(dim=0)
                         target = torch.ones(pimg.size(0), device=self.device)
 
                         # Restart params gradients
@@ -130,9 +147,11 @@ class ImgTrainer:
 
                         # Forward pass
                         with torch.set_grad_enabled(phase == "train"):
-                            pos, neg = self.model(profile, pimg, nimg)
-                            loss = self.criterion(pos, neg, target)
+                            pos, neg = self.model(profile, pimg, nimg, pi, ni)
                             output = pos-neg
+                            loss = self.criterion(output, target)
+                            loss += (1.0 * torch.norm(self.model.theta_users.weight))
+
                             # Backward pass
                             if phase == "train":
                                 loss.backward()
@@ -145,8 +164,10 @@ class ImgTrainer:
                         # Update progress bar
                         if phase == "train":
                             pbar_train.update()
+                            pbar_train.set_postfix(last_lostt=loss.item())
                         else:
                             pbar_valid.update()
+                            pbar_valid.set_postfix(last_lostt=loss.item())
 
                         # Synchronize GPU (debugging)
                         # torch.cuda.synchronize()
