@@ -41,6 +41,8 @@ presented at the 2021 ACM Conference on Intelligent User Interfaces (IUI 2021).
 Just like you, we have been looking for several years for some datasets to train our models. For instance, the <a href="#">RecSys dataset collection
 by Prof. Julian McAuley at USCD </a> has datasets, but due to copyright issues he only shares embeddings as .npy. We need images to test if our recommendations are making sense!
 
+We acknowledge the support of [Diego Saez-Trumper](https://wikimediafoundation.org/profile/diego-saez-trumper/) from Wikimedia foundation to collect this dataset.
+
 ## Benchmark on Wikimedia Commons Dataset
 
 |            | AUC     | RR      | R@20    | P@20    | nDCG@20 | R@100   | P@100   | nDCG@100 |
