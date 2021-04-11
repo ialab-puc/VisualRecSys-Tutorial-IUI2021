@@ -1,7 +1,8 @@
-# Tutorial on Visual Recommendation Systems
+# VisRec: A Hands-on Tutorial on Deep Learning for Visual Recommender Systems
 
-This page hosts the material for the tutorial on Visual Recommendation Systems which will be
+This page hosts the material for the tutorial on **VisRec: A Hands-on Tutorial on Deep Learning for Visual Recommender Systems** which will be
 presented at the 2021 ACM Conference on Intelligent User Interfaces (IUI 2021).
+
 **Schedule**: Tuesday, April 13th 2021, starting at 1:30pm CDT 
 
 ## Instructors
