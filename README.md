@@ -2,6 +2,7 @@
 
 This page hosts the material for the tutorial on Visual Recommendation Systems which will be
 presented at the 2021 ACM Conference on Intelligent User Interfaces (IUI 2021).
+**Schedule**: Tuesday, April 13th 2021, starting at 1:30pm CDT 
 
 ## Instructors
 
@@ -11,27 +12,42 @@ presented at the 2021 ACM Conference on Intelligent User Interfaces (IUI 2021).
 * Patricio Cerda-Mardini, MSc, PUC Chile & MindsDB
 * Felipe del Río, PhD Student, PUC Chile
 
+![speakers-visrec](https://user-images.githubusercontent.com/208111/114323807-f818ba80-9af4-11eb-84ef-428517a4fe60.jpg)
+
 ## Requisites
 
 * Python 3.7+
 * Pytorch 1.7
 * Torchvision
 
-## Benchmark
-
-|            | AUC     | RR      | R@20    | P@20    | nDCG@20 | R@100   | P@100   | nDCG@100 |
-|------------|---------|---------|---------|---------|---------|---------|---------|----------|
-| [1] CuratorNet | .689338 | .013876 | .029684 | .001484 | .016741 | .053803 | .000538 | .020919  |
-| [2] VBPR       | .778463 | .021693 | .055658 | .002782 | .026848 | .138218 | .001382 | .041056  |
-| [3] DVBPR      | .831688 | .045073 | .121521 | .006076 | .058142 | .256957 | .002569 | .082453  |
-| [4] ACF        | .794756 | .020795 | .064007 | .003200 | .027615 | .156771 | .001567 | .043894  |
-
 ## Program
 
-## Dataset
+* (40 mins) Session 1: Introduction to Visual RecSys, datasets and feature extraction with CNNs in Pytorch
+* (40 mins) Session 2: Pipeline for training and testing visual RecSys in Pytorch, application with VisRank and VBPR
+
+(10 mins) [BREAK] 
+
+* (25 mins) Session 3: Dynamic Visual Bayesian Personalized Ranking (DVBPR) in Pytorch
+* (25 mins) Session 4: CuratorNet in Pytorch
+* (25 mins) Session 5: Attentive Collaborative Filtering (ACF) in Pytorch
+
+(5 mins) [BREAK] 
+
+* (10 mins) Conclusion
+
+## Wikimedia Commons Dataset
 
 Just like you, we have been looking for several years for some datasets to train our models. For instance, the <a href="#">RecSys dataset collection
 by Prof. Julian McAuley at USCD </a> has datasets, but due to copyright issues he only shares embeddings as .npy. We need images to test if our recommendations are making sense!
+
+## Benchmark on Wikimedia Commons Dataset
+
+|            | AUC     | RR      | R@20    | P@20    | nDCG@20 | R@100   | P@100   | nDCG@100 |
+|------------|---------|---------|---------|---------|---------|---------|---------|----------|
+| [1] CuratorNet | .68933 | .01387 | .02968 | .00148 | .01674 | .05380 | .00053 | .02091  |
+| [2] VBPR       | .77846 | .02169 | .05565 | .00278 | .02684 | .13821 | .00138 | .04105  |
+| [3] DVBPR      | .83168 | .04507 | .12152 | .00607 | .05814 | .25695 | .00256 | .08245  |
+| [4] ACF        | .79475 | .02079 | .06400 | .00320 | .02761 | .15677 | .00156 | .04389  |
 
 ## References
 
