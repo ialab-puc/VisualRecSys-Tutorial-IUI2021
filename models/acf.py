@@ -73,7 +73,7 @@ class ACFUserNet(nn.Module):
         num_users = max(users) + 1
         num_items = max(items) + 1
 
-        reduced_feature_dim = emb_dim # TODO: parametrize
+        reduced_feature_dim = emb_dim
         self.feats = ACFFeatureNet(emb_dim, input_feature_dim, reduced_feature_dim) if input_feature_dim > 0 else None
 
         self.user_embedding = nn.Embedding(num_users, emb_dim)
@@ -125,13 +125,13 @@ class ACFUserNet(nn.Module):
             components = torch.tensor([], device=self.device)
 
         user = self.w_u(user)
-        profile_attention = self.w_p(profile) # TODO: Better name
+        profile_query = self.w_p(profile)
         components = self.w_x(components)
 
-        profile_attention = profile_attention.permute((1,0,2))
+        profile_query = profile_query.permute((1,0,2))
         components = components.permute((1,0,2))
 
-        alpha = F.relu(user + profile_attention + components) # TODO: + item, Add curent_item emb (?)
+        alpha = F.relu(user + profile_query + components) # TODO: + item, Add curent_item emb (?)
         alpha = self.w(alpha)
 
         profile_mask = profile_mask.permute((1,0))
