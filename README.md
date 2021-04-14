@@ -30,14 +30,14 @@ Denis Parra, Antonio Ossa-Guerra, Manuel Cartagena, Patricio Cerda-Mardini, and 
 
 ## Program
 
-* (40 mins) Session 1: Introduction to Visual RecSys, datasets and feature extraction with CNNs in Pytorch
-* (40 mins) Session 2: Pipeline for training and testing visual RecSys in Pytorch, application with VisRank and VBPR
+* (40 mins) [Session 1](https://github.com/ialab-puc/VisualRecSys-Tutorial-IUI2021/blob/main/slides/Session%201%20VisRec%20Introduction%20.pdf): Introduction to Visual RecSys, datasets and feature extraction with CNNs in Pytorch
+* (40 mins) [Session 2](https://github.com/ialab-puc/VisualRecSys-Tutorial-IUI2021/blob/main/slides/Session%202%20Pipeline%20%2B%20VisRank%20%2B%20VBPR.pdf): Pipeline for training and testing visual RecSys in Pytorch, application with VisRank and VBPR
 
 (10 mins) [BREAK] 
 
-* (25 mins) Session 3: Dynamic Visual Bayesian Personalized Ranking (DVBPR) in Pytorch
-* (25 mins) Session 4: CuratorNet in Pytorch
-* (25 mins) Session 5: Attentive Collaborative Filtering (ACF) in Pytorch
+* (25 mins) [Session 3](https://github.com/ialab-puc/VisualRecSys-Tutorial-IUI2021/blob/main/slides/Session%203%20DVBPR.pdf): Dynamic Visual Bayesian Personalized Ranking (DVBPR) in Pytorch
+* (25 mins) [Session 4](https://github.com/ialab-puc/VisualRecSys-Tutorial-IUI2021/blob/main/slides/Session%204%20CuratorNet.pdf): CuratorNet in Pytorch
+* (25 mins) [Session 5](https://github.com/ialab-puc/VisualRecSys-Tutorial-IUI2021/blob/main/slides/Session%205%20ACF.pdf): Attentive Collaborative Filtering (ACF) in Pytorch
 
 (5 mins) [BREAK] 
 
