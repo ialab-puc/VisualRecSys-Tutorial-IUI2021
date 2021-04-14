@@ -5,6 +5,13 @@ presented at the 2021 ACM Conference on Intelligent User Interfaces (IUI 2021).
 
 **Schedule**: Tuesday, April 13th 2021, starting at 1:30pm CDT 
 
+## Citation
+
+If you use this material or code and publish something thanks to it, please cite
+
+Denis Parra, Antonio Ossa-Guerra, Manuel Cartagena, Patricio Cerda-Mardini, and Felipe del Rio. 2021. VisRec: A Hands-on Tutorial on Deep Learning for Visual Recommender Systems. In <i>26th International Conference on Intelligent User Interfaces</i> (<i>IUI '21</i>). Association for Computing Machinery, New York, NY, USA, 5–6. DOI:https://doi.org/10.1145/3397482.3450620
+
+
 ## Instructors
 
 * Denis Parra, Associate Professor, PUC Chile
