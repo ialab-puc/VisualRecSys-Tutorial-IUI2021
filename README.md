@@ -22,6 +22,10 @@ Denis Parra, Antonio Ossa-Guerra, Manuel Cartagena, Patricio Cerda-Mardini, and 
 
 ![speakers-visrec](https://user-images.githubusercontent.com/208111/114323807-f818ba80-9af4-11eb-84ef-428517a4fe60.jpg)
 
+## Recording
+
+We have the [recording of the tutorial session](https://drive.google.com/file/d/1HfCs-9PgKwV5XEDMTEo-bMDrp4R9lc4p/view?usp=sharing)
+
 ## Requisites
 
 * Python 3.7+
