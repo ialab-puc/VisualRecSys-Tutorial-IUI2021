@@ -1,0 +1,52 @@
+cff-version: 1.2.0
+authors: 
+  - family-names: Parra
+    given-names: Denis
+    orcid: "https://orcid.org/0000-0001-9878-8761"
+  - family-names: Ossa
+    given-names: Antonio
+    orcid: "https://orcid.org/0000-0002-6752-4541"
+  - family-names: Cartagena
+    given-names: Manuel
+  - family-names: "Cerda-Mardini"
+    given-names: Patricio
+  - family-names: "del Rio"
+    given-names: Felipe
+    orcid: "https://orcid.org/0000-0003-0411-8295"
+date-released: 2021-04-13
+doi: "10.1145/3397482.3450620"
+keywords: 
+  - "neural networks"
+  - "deep learning"
+  - "recommender systems"
+  - "multimedia recommendation"
+license: MIT
+message: "If you use this material or code, please cite the article from preferred-citation."
+repository-code: "https://github.com/ialab-puc/VisualRecSys-Tutorial-IUI2021"
+title: "VisRec: A Hands-on Tutorial on Deep Learning for Visual Recommender Systems"
+preferred-citation:
+  type: conference-paper
+  authors: 
+    - family-names: Parra
+      given-names: Denis
+      orcid: "https://orcid.org/0000-0001-9878-8761"
+    - family-names: Ossa
+      given-names: Antonio
+      orcid: "https://orcid.org/0000-0002-6752-4541"
+    - family-names: Cartagena
+      given-names: Manuel
+    - family-names: "Cerda-Mardini"
+      given-names: Patricio
+    - family-names: "del Rio"
+      given-names: Felipe
+  title: "VisRec: A Hands-on Tutorial on Deep Learning for Visual Recommender Systems"
+  year: 2021
+  collection-title: "26th International Conference on Intelligent User Interfaces"
+  collection-doi: "10.1145/3397482"
+  conference:
+    name: "26th International Conference on Intelligent User Interfaces (IUI '21)"
+    location: "College Station, TX, USA"
+  isbn: "9781450380188"
+  start: 5
+  end: 6
+  doi: "10.1145/3397482.3450620"
