@@ -4,11 +4,11 @@
 checkpoints/*
 
 # Ignore changes in datasets data folder...
-data/*
+data/*/*
 # ... except its README...
-!data/README.md
+!data/*/README.md
 # and the data analysis
-!data/Data\ Analysis.ipynb
+!data/*/Data\ Analysis.ipynb
 
 
 # Created by https://www.gitignore.io/api/linux,macos,python,windows,jupyternotebooks
