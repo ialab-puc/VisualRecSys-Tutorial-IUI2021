@@ -1,3 +1,6 @@
+# The following code is a derivative from the one published
+# at  https://github.com/Darel13712/acf_pytorch by Darel13712
+
 import numpy as np
 import torch
 import torch.nn as nn
