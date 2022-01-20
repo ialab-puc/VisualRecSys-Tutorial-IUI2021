@@ -1,7 +1,6 @@
 # The following code is a derivative from the one published
 # at  https://github.com/Darel13712/acf_pytorch by Darel13712
 
-from copy import deepcopy
 import os
 from typing import Sequence
 
