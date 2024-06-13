@@ -1,5 +1,9 @@
 ### Custom
 
+# Ignore dataset
+colabnotebooks/wikimedia_recsys
+colabnotebooks/wikimedia_recsys.zip
+
 # Ignore checkpoints folder contents
 checkpoints/*
 
